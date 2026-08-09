@@ -17,8 +17,8 @@
   </script>
 
   <style>
-    :root{ --primary:#049D43; --accent:#1976d2; --bg:#f8fafc; --card:#ffffff; --bump-bg:#fff8ec; --bump-border:#f5a623; --danger:#d32f2f; }
-    body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background:var(--bg); margin:0; color:#1e293b; line-height:1.5; }
+    :root{ --primary:#049D43; --accent:#1976d2; --bg:#eafbf1; --card:#ffffff; --bump-bg:#fff8ec; --bump-border:#f5a623; --danger:#d32f2f; }
+    body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background:linear-gradient(160deg, #eafbf1 0%, #f8fafc 55%, #f8fafc 100%); margin:0; color:#1e293b; line-height:1.5; min-height:100vh; }
     .header-alert { background:#d32f2f; color:#fff; text-align:center; padding:12px; font-weight:700; font-size:14px; }
     .container { display:flex; justify-content:center; padding:10px; }
     .card { background:var(--card); padding:16px; max-width:450px; width:100%; border-radius:16px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); border:1px solid #e2e8f0; }
@@ -86,7 +86,7 @@
     <div class="card">
       <h2>Taxa de Ativação</h2>
       <div class="price" id="total-price">197,00 MZN</div>
-      <div class="price-breakdown" id="price-breakdown">Apenas taxa de ativação</div>
+      <div class="price-breakdown" id="price-breakdown">Apenas taxa de ativação — adicione as ofertas abaixo se quiser</div>
 
       <input type="text" id="nome" placeholder="Nome Completo">
       <input type="email" id="email" placeholder="E-mail para receber acesso">
@@ -95,7 +95,7 @@
       <!-- ===== ORDER BUMPS ===== -->
       <div class="bumps-label">🔥 Ofertas exclusivas — só nesta página</div>
 
-      <div class="bump-card selected" id="bump-1" data-price="129" data-old="199" data-name="+150 Empresas que Pagam por Opiniões" onclick="toggleBump(1)">
+      <div class="bump-card" id="bump-1" data-price="129" data-old="199" data-name="+150 Empresas que Pagam por Opiniões" onclick="toggleBump(1)">
         <div class="bump-icon">📱</div>
         <div class="bump-content">
           <div class="bump-title">+150 Empresas que Pagam por Opiniões</div>
@@ -111,7 +111,7 @@
         </div>
       </div>
 
-      <div class="bump-card selected" id="bump-2" data-price="99" data-old="149" data-name="Roteiro 64.000 MZN em 7 Dias" onclick="toggleBump(2)">
+      <div class="bump-card" id="bump-2" data-price="99" data-old="149" data-name="Roteiro 64.000 MZN em 7 Dias" onclick="toggleBump(2)">
         <div class="bump-icon">📘</div>
         <div class="bump-content">
           <div class="bump-title">Roteiro 64.000 MZN em 7 Dias</div>
