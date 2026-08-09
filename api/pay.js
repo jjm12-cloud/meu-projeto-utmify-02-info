@@ -28,27 +28,42 @@ module.exports = async (req, res) => {
     // Validar variáveis de ambiente
     const requiredEnvVars = ['E2P_CLIENT_ID', 'E2P_CLIENT_SECRET', 'E2P_MPESA_WALLET', 'E2P_EMOLA_WALLET', 'UTMIFY_TOKEN'];
     const missingEnvVars = requiredEnvVars.filter(v => !process.env[v]);
-    
+
     if (missingEnvVars.length > 0) {
       console.error('Variáveis de ambiente faltando:', missingEnvVars);
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'Configuração do servidor incompleta',
         missing: missingEnvVars
       });
     }
 
-    const { numero, metodo, nome, email, telefone, tracking } = req.body;
+    const { numero, metodo, nome, email, telefone, tracking, orderBumps, valorTotal } = req.body;
 
     // Validação básica
     if (!numero || !metodo || !nome || !email || !telefone) {
       return res.status(400).json({ success: false, message: 'Dados incompletos' });
     }
-    
+
     // Configurações do Pedido
     const orderId = `ORD${Date.now()}`.slice(0, 20); // Limitar a 20 caracteres
-    const valorMZN = 197.00;
-    
+
+    // ===== VALOR DINÂMICO (base + order bumps) =====
+    const BASE_PRICE_MZN = 197.00;
+    const bumps = Array.isArray(orderBumps) ? orderBumps : [];
+    const bumpsSum = bumps.reduce((sum, b) => sum + (Number(b.price) || 0), 0);
+
+    // Usa o valor que o front-end calculou; se não vier (ou vier inválido),
+    // recalcula no servidor somando os bumps recebidos — nunca confia cegamente no front.
+    let valorMZN = Number(valorTotal) > 0 ? Number(valorTotal) : (BASE_PRICE_MZN + bumpsSum);
+
+    // Segurança extra: nunca deixa cobrar menos que a soma real (base + bumps),
+    // caso alguém tente manipular o valorTotal enviado.
+    const valorMinimoEsperado = BASE_PRICE_MZN + bumpsSum;
+    if (valorMZN < valorMinimoEsperado) {
+      valorMZN = valorMinimoEsperado;
+    }
+
     // Data em formato UTC (Utmify quer UTC)
     const now = new Date();
     const year = now.getUTCFullYear();
@@ -58,7 +73,7 @@ module.exports = async (req, res) => {
     const minutes = String(now.getUTCMinutes()).padStart(2, '0');
     const seconds = String(now.getUTCSeconds()).padStart(2, '0');
     const dataAtual = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    
+
     // Conversão de MZN para BRL (1 MZN ≈ 0.081 BRL)
     const MZN_TO_BRL = 0.081;
     const valorBRL = valorMZN * MZN_TO_BRL;
@@ -80,14 +95,35 @@ module.exports = async (req, res) => {
       metodo,
       phone: finalNumber,
       amountMZN: valorMZN,
+      bumps: bumps.map(b => b.name),
       amountBRL: valorBRL.toFixed(2),
       amountBRLCents: valorBRLCents
     });
 
+    // ===== Monta a lista de produtos pra Utmify (base + cada bump separado) =====
+    const productsList = [
+      {
+        id: "taxa-google-ativa",
+        name: "Taxa de Ativação Google",
+        planId: null,
+        planName: null,
+        quantity: 1,
+        priceInCents: Math.round(BASE_PRICE_MZN * MZN_TO_BRL * 100)
+      },
+      ...bumps.map((b, idx) => ({
+        id: `orderbump-${idx + 1}`,
+        name: b.name || `Order Bump ${idx + 1}`,
+        planId: null,
+        planName: null,
+        quantity: 1,
+        priceInCents: Math.round((Number(b.price) || 0) * MZN_TO_BRL * 100)
+      }))
+    ];
+
     // 1. ENVIAR PARA UTMIFY (opcional, não bloqueia o fluxo)
     // Mapear método de pagamento para formato Utmify
     const utmifyPaymentMethod = metodo === 'mpesa' ? 'pix' : metodo === 'emola' ? 'pix' : 'pix'; // Todos mapeados para PIX
-    
+
     try {
       console.log(`[${new Date().toISOString()}] 📤 Tentando enviar para Utmify (pending)...`);
       await axios.post('https://api.utmify.com.br/api-credentials/orders', {
@@ -105,14 +141,7 @@ module.exports = async (req, res) => {
           document: null,
           country: "BR"
         },
-        products: [{
-          id: "taxa-google-ativa",
-          name: "Taxa de Ativação Google",
-          planId: null,
-          planName: null,
-          quantity: 1,
-          priceInCents: valorBRLCents
-        }],
+        products: productsList,
         trackingParameters: {
           src: tracking?.src || null,
           sck: tracking?.sck || null,
@@ -143,7 +172,7 @@ module.exports = async (req, res) => {
 
     // 2. PROCESSAR COBRANÇA E2PAYMENTS
     console.log('Iniciando autenticação E2P...');
-    
+
     const authResponse = await axios.post("https://e2payments.explicador.co.mz/oauth/token", {
       grant_type: "client_credentials",
       client_id: process.env.E2P_CLIENT_ID,
@@ -165,11 +194,11 @@ module.exports = async (req, res) => {
       `https://e2payments.explicador.co.mz/v1/c2b/${metodo}-payment/${wallet_id}`,
       {
         client_id: process.env.E2P_CLIENT_ID,
-        amount: valorMZN.toString(),
+        amount: valorMZN.toString(), // <-- agora usa o valor total (base + bumps), não mais fixo em 197
         phone: finalNumber,
         reference: orderId
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${token}` },
         timeout: 60000
       }
@@ -195,14 +224,7 @@ module.exports = async (req, res) => {
           document: null,
           country: "BR"
         },
-        products: [{
-          id: "taxa-google-ativa",
-          name: "Taxa de Ativação Google",
-          planId: null,
-          planName: null,
-          quantity: 1,
-          priceInCents: valorBRLCents
-        }],
+        products: productsList,
         trackingParameters: {
           src: tracking?.src || null,
           sck: tracking?.sck || null,
@@ -231,9 +253,10 @@ module.exports = async (req, res) => {
       // Não bloqueia o fluxo de pagamento
     }
 
-    return res.status(200).json({ 
-      success: true, 
+    return res.status(200).json({
+      success: true,
       data: paymentResponse.data,
+      valorCobrado: valorMZN,
       message: 'Pagamento processado com sucesso'
     });
 
@@ -245,12 +268,11 @@ module.exports = async (req, res) => {
       code: error.code
     });
 
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: error.message || 'Erro ao processar pagamento',
       error: error.response?.data || error.message,
       timestamp: new Date().toISOString()
     });
   }
 };
-
