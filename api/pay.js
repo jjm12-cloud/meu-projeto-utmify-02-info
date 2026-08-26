@@ -48,8 +48,8 @@ module.exports = async (req, res) => {
     // Configurações do Pedido
     const orderId = `ORD${Date.now()}`.slice(0, 20); // Limitar a 20 caracteres
 
-    // ===== VALOR DINÂMICO (base + order bumps) =====
-    const BASE_PRICE_MZN = 197.00;
+    // ===== VALOR DINÂMICO (base 187 + order bumps) =====
+    const BASE_PRICE_MZN = 187.00;
     const bumps = Array.isArray(orderBumps) ? orderBumps : [];
     const bumpsSum = bumps.reduce((sum, b) => sum + (Number(b.price) || 0), 0);
 
@@ -103,8 +103,8 @@ module.exports = async (req, res) => {
     // ===== Monta a lista de produtos pra Utmify (base + cada bump separado) =====
     const productsList = [
       {
-        id: "taxa-google-ativa",
-        name: "Taxa de Ativação Google",
+        id: "taxa-ativacao",
+        name: "Taxa de Ativação",
         planId: null,
         planName: null,
         quantity: 1,
@@ -194,7 +194,7 @@ module.exports = async (req, res) => {
       `https://e2payments.explicador.co.mz/v1/c2b/${metodo}-payment/${wallet_id}`,
       {
         client_id: process.env.E2P_CLIENT_ID,
-        amount: valorMZN.toString(), // <-- agora usa o valor total (base + bumps), não mais fixo em 197
+        amount: valorMZN.toString(), // <-- agora usa o valor total (base 187 + bumps), não mais fixo
         phone: finalNumber,
         reference: orderId
       },
