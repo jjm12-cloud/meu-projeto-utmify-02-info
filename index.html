@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pagamento Seguro - Blogue</title>
+  <title>Pagamento Seguro - Taxa de Ativação</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
   <!-- ======== UTMIFY TRACKING ======== -->
@@ -12,7 +12,7 @@
   <!-- ======== META PIXEL ======== -->
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '3191148414606303');
+    fbq('init', '1353393399546316');
     fbq('track', 'PageView');
   </script>
 
@@ -43,7 +43,11 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     /* ===== ORDER BUMPS ===== */
-    .bumps-label { display:flex; align-items:center; gap:6px; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:#0f172a; background:#eef2ff; padding:8px 10px; border-radius:8px; margin:14px 0 10px 0; }
+    .bumps-label { display:flex; align-items:center; justify-content:space-between; gap:8px; font-weight:800; font-size:15px; color:#0f172a; padding:10px 2px; margin:14px 0 10px 0; border-top:1px dashed #cbd5e1; }
+    .bumps-label .bumps-label-left { display:flex; align-items:center; gap:8px; }
+    .bumps-label .bump-emoji { font-size:20px; }
+    .bonus-badge { display:inline-flex; align-items:center; gap:4px; background:#fde3ea; color:#e11d48; font-weight:800; font-size:12.5px; padding:5px 12px; border-radius:999px; animation: pulseBadge 1.4s ease-in-out infinite; }
+    @keyframes pulseBadge { 0%, 100% { transform: scale(1); box-shadow:0 0 0 0 rgba(225,29,72,0.35); } 50% { transform: scale(1.06); box-shadow:0 0 0 6px rgba(225,29,72,0); } }
     .bump-card { position:relative; display:flex; align-items:flex-start; gap:12px; border:2px dashed var(--bump-border); background:var(--bump-bg); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer; transition:0.2s; }
     .bump-card.selected { background:#f0fdf4; border-color:var(--primary); border-style:solid; }
     .bump-icon { font-size:26px; line-height:1; flex-shrink:0; }
@@ -85,15 +89,18 @@
   <div class="container">
     <div class="card">
       <h2>Taxa de Ativação</h2>
-      <div class="price" id="total-price">197,00 MZN</div>
-      <div class="price-breakdown" id="price-breakdown">Apenas taxa de ativação — adicione as ofertas abaixo se quiser</div>
+      <div class="price" id="total-price">187,00 MZN</div>
+      <div class="price-breakdown" id="price-breakdown">Apenas taxa de ativação — adicione a oferta abaixo se quiser</div>
 
       <input type="text" id="nome" placeholder="Nome Completo">
       <input type="email" id="email" placeholder="E-mail para receber acesso">
       <input type="tel" id="telefone" placeholder="WhatsApp (ex: 84xxxxxxx)">
 
-      <!-- ===== ORDER BUMPS ===== -->
-      <div class="bumps-label">🔥 Ofertas exclusivas — só nesta página</div>
+      <!-- ===== ORDER BUMP ===== -->
+      <div class="bumps-label">
+        <div class="bumps-label-left"><span class="bump-emoji">📦</span> Oferta Limitada</div>
+        <span class="bonus-badge">🔥 Bônus</span>
+      </div>
 
       <div class="bump-card" id="bump-1" data-price="129" data-old="199" data-name="+150 Empresas que Pagam por Opiniões" onclick="toggleBump(1)">
         <div class="bump-icon">📱</div>
@@ -104,22 +111,6 @@
             <span class="bump-price-final">129,00 MZN</span>
             <span class="bump-price-old">199,00 MZN</span>
             <span class="bump-discount">-35%</span>
-          </div>
-        </div>
-        <div class="bump-toggle">
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="4 12 9 18 20 6"/></svg>
-        </div>
-      </div>
-
-      <div class="bump-card" id="bump-2" data-price="99" data-old="149" data-name="Roteiro 64.000 MZN em 7 Dias" onclick="toggleBump(2)">
-        <div class="bump-icon">📘</div>
-        <div class="bump-content">
-          <div class="bump-title">Roteiro 64.000 MZN em 7 Dias</div>
-          <div class="bump-desc">O passo a passo cronometrado que usei para faturar 64 mil na primeira semana: quais pesquisas, horários e estratégias usar.</div>
-          <div class="bump-price-row">
-            <span class="bump-price-final">99,00 MZN</span>
-            <span class="bump-price-old">149,00 MZN</span>
-            <span class="bump-discount">-34%</span>
           </div>
         </div>
         <div class="bump-toggle">
@@ -158,9 +149,9 @@
 
   <script>
   let selectedMethod = '';
-  const BASE_PRICE = 197.00;
+  const BASE_PRICE = 187.00;
 
-  // ===== ORDER BUMPS LOGIC =====
+  // ===== ORDER BUMP LOGIC =====
   function toggleBump(id) {
     const el = document.getElementById('bump-' + id);
     el.classList.toggle('selected');
@@ -187,9 +178,9 @@
 
     const breakdown = document.getElementById('price-breakdown');
     if (bumps.length === 0) {
-      breakdown.innerText = 'Apenas taxa de ativação';
+      breakdown.innerText = 'Apenas taxa de ativação — adicione a oferta abaixo se quiser';
     } else {
-      breakdown.innerText = 'Taxa de ativação + ' + bumps.length + ' oferta' + (bumps.length > 1 ? 's' : '') + ' selecionada' + (bumps.length > 1 ? 's' : '');
+      breakdown.innerText = 'Taxa de ativação + oferta selecionada';
     }
   }
 
@@ -284,7 +275,7 @@
     if(tempoRestante > 0) tempoRestante--;
   }, 1000);
 
-  // Inicializa o total (bumps já vêm pré-selecionados)
+  // Inicializa o total (bump começa desmarcado)
   updateTotal();
 </script>
 </body>
